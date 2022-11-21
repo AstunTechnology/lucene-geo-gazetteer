@@ -1,0 +1,7 @@
+data
+.settings
+.classpath
+.project
+target
+geoIndex
+*.zip
