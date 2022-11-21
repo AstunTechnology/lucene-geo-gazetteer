@@ -9,7 +9,7 @@ Description=GeoParser server service
 
 [Service]
 Type=simple
-ExecStart=<path to>/lucene-geo-gazetteer/src/main/bin/lucene-geo-gazetteer -server
+ExecStart=some/location/lucene-geo-gazetteer/src/main/bin/lucene-geo-gazetteer -server
 Restart=always
 TimeoutStartSec=0
 
