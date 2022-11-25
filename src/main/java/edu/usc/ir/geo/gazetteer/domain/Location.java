@@ -101,6 +101,7 @@ public class Location {
 		sb.append("\""+ countryCode + "\",");
 		sb.append("\""+ admin1Code + "\",");
 		sb.append("\""+ admin2Code + "\"");
+		sb.append("\""+ featureCode + "\"");
 		
 		return sb.toString();
 	}

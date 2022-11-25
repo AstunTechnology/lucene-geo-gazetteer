@@ -128,6 +128,8 @@ public class GeoNameResolver implements Closeable {
 	private SpatialContext ctx = SpatialContext.GEO;
 	private SpatialPrefixTree grid = new GeohashPrefixTree(ctx, 11);
 	private SpatialStrategy strategy = new RecursivePrefixTreeStrategy(grid, "location");
+
+	static Logger logger = Logger.getLogger(GeoNameResolver.class.getName());
 	 
 	public GeoNameResolver(){
 	}
@@ -236,6 +238,7 @@ public class GeoNameResolver implements Closeable {
 
 		for (String name : locationNames) {
 
+			logger.log(Level.FINE,"looking up "+name);
 			if (!allCandidates.containsKey(name)) {
 				try {
 					//query is wrapped in additional quotes (") to avoid query tokenization on space
@@ -244,8 +247,9 @@ public class GeoNameResolver implements Closeable {
 
 					Sort sort = new Sort(populationSort);
 					//Fetch 3 times desired values, these will be sorted on code and only desired number will be kept
-					ScoreDoc[] hits = searcher.search(q, hitsPerPage * 3 , sort).scoreDocs;
+					ScoreDoc[] hits = searcher.search(q, hitsPerPage * 30 , sort).scoreDocs;
 
+					logger.log(Level.FINE,"got "+hits.length+" results");
 					getMatchingCandidates(searcher, allCandidates, name, hits);
 				} catch (org.apache.lucene.queryparser.classic.ParseException e) {
 					e.printStackTrace();
@@ -303,8 +307,15 @@ public class GeoNameResolver implements Closeable {
 		if(inputLocations == null || inputLocations.size()==0){
 			return new ArrayList<>();
 		}
-		
+		logger.log(Level.FINE,"got "+inputLocations.size()+" locations to sort");
+		for(Location l:inputLocations){
+			logger.log(Level.FINE,l.toString());
+		}
 		Collections.sort(inputLocations, new CustomLuceneGeoGazetteerComparator.FeatureCodeComparator());
+		logger.log(Level.FINE,"post sort ");
+		for(Location l:inputLocations){
+			logger.log(Level.FINE,l.toString());
+		}
 		return inputLocations.subList(0, inputLocations.size() > topCount ? topCount : inputLocations.size() - 1);
 	}
 
@@ -425,7 +436,6 @@ public class GeoNameResolver implements Closeable {
 		if (!DirectoryReader.indexExists(indexDir)) {
 			IndexWriterConfig config = new IndexWriterConfig(analyzer);
 			indexWriter = new IndexWriter(indexDir, config);
-			Logger logger = Logger.getLogger(this.getClass().getName());
 			logger.log(Level.WARNING, "Start Building Index for Gazatteer");
 			BufferedReader filereader = new BufferedReader(
 					new InputStreamReader(new FileInputStream(gazetteerPath),
@@ -666,7 +676,7 @@ public class GeoNameResolver implements Closeable {
 				List<Location> resolved = resolver
 							.searchNearby(Double.parseDouble(latLong[0]), Double.parseDouble(latLong[1]), REVERSE_DISTANCE_LIMIT, indexPath, count);
 				
-				System.out.println(new Gson().toJson(resolved));
+				logger.log(Level.FINE,new Gson().toJson(resolved));
 			}
 
 			if (line.hasOption("search")) {
